@@ -88,8 +88,14 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		// 1. 父类(GenericApplicationContext)的构造方法中：新创建了一个DefaultListableBeanFactory容器
+		// 		初始化bean读取器和扫描器;
+		// 			读取器：读取spring内部的各种注解处理器Bean加到BeanDefinitionMap中；eg:内部管理配置注解处理器
+		// 			扫描器：扫描应用中某些Bean加入到BeanDefinitionMap中；eg:@Component，JSR250，JSR330规范的注解
 		this();
+		// 2. 注册bean配置类；
 		register(componentClasses);
+		// 3. 刷新容器
 		refresh();
 	}
 

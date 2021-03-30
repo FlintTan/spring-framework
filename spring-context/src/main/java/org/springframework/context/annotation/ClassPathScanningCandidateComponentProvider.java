@@ -59,6 +59,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import javax.annotation.ManagedBean;
+import javax.inject.Named;
 
 /**
  * A component provider that provides candidate components from a base package. Can
@@ -197,8 +199,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * {@link Component @Component} meta-annotation including the
 	 * {@link Repository @Repository}, {@link Service @Service}, and
 	 * {@link Controller @Controller} stereotype annotations.
-	 * <p>Also supports Java EE 6's {@link javax.annotation.ManagedBean} and
-	 * JSR-330's {@link javax.inject.Named} annotations, if available.
+	 * <p>Also supports Java EE 6's {@link ManagedBean} and
+	 * JSR-330's {@link Named} annotations, if available.
 	 *
 	 */
 	@SuppressWarnings("unchecked")
