@@ -93,7 +93,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		// 			读取器：读取spring内部的各种注解处理器Bean加到BeanDefinitionMap中；eg:内部管理配置注解处理器
 		// 			扫描器：扫描应用中某些Bean加入到BeanDefinitionMap中；eg:@Component，JSR250，JSR330规范的注解
 		this();
-		// 2. 注册bean配置类；
+		// 2. 注册自己传入的配置类；  componentClasses： 传入的配置类 注册到容器中去。
 		register(componentClasses);
 		// 3. 刷新容器
 		refresh();

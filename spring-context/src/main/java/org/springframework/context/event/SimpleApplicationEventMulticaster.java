@@ -126,6 +126,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		return this.errorHandler;
 	}
 
+
 	@Override
 	public void multicastEvent(ApplicationEvent event) {
 		multicastEvent(event, resolveDefaultEventType(event));
@@ -175,6 +176,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
 		try {
+			// 实现ApplicationListener接口后，重写的onApplicationEvent方法，在这调用执行
 			listener.onApplicationEvent(event);
 		}
 		catch (ClassCastException ex) {

@@ -145,10 +145,11 @@ class ConfigurationClassBeanDefinitionReader {
 			this.importRegistry.removeImportingClass(configClass.getMetadata().getClassName());
 			return;
 		}
-
+		// 是否是@Import导入
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+		// 处理@Bean注解导入的Bean
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
@@ -171,6 +172,7 @@ class ConfigurationClassBeanDefinitionReader {
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(configBeanDef, configBeanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		// 将@Import注册进 BeanDefinitionRegistry
 		this.registry.registerBeanDefinition(definitionHolder.getBeanName(), definitionHolder.getBeanDefinition());
 		configClass.setBeanName(configBeanName);
 
@@ -187,6 +189,7 @@ class ConfigurationClassBeanDefinitionReader {
 	private void loadBeanDefinitionsForBeanMethod(BeanMethod beanMethod) {
 		ConfigurationClass configClass = beanMethod.getConfigurationClass();
 		MethodMetadata metadata = beanMethod.getMetadata();
+		// 获取@Bean下的方法名称
 		String methodName = metadata.getMethodName();
 
 		// Do we need to mark the bean as skipped by its condition?
@@ -202,10 +205,12 @@ class ConfigurationClassBeanDefinitionReader {
 		Assert.state(bean != null, "No @Bean annotation attributes");
 
 		// Consider name and any aliases
+		// 别名： @Bean(name = "")
 		List<String> names = new ArrayList<>(Arrays.asList(bean.getStringArray("name")));
 		String beanName = (!names.isEmpty() ? names.remove(0) : methodName);
 
-		// Register aliases even when overridden
+		// Register aliases even when
+		// 多个别名注册时会覆盖
 		for (String alias : names) {
 			this.registry.registerAlias(beanName, alias);
 		}
@@ -292,6 +297,7 @@ class ConfigurationClassBeanDefinitionReader {
 			logger.trace(String.format("Registering bean definition for @Bean method %s.%s()",
 					configClass.getMetadata().getClassName(), beanName));
 		}
+		// 在这将@Bean注解下的的方法注册进BeanDefinitionRegistry
 		this.registry.registerBeanDefinition(beanName, beanDefToRegister);
 	}
 
