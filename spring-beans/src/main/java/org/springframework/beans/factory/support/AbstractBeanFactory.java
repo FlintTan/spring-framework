@@ -249,10 +249,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
 
+		// 将name转换为标准的beanName，即：通过各个别名获取Bean真实的 beanName
 		String beanName = transformedBeanName(name);
 		Object beanInstance;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		// 这里尝试从缓存中去拿去Bean，通常拿不到。 如果用户手动注册进来了，则可以拿到
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -271,6 +273,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
 			if (isPrototypeCurrentlyInCreation(beanName)) {
+				// 如果不是单例模式，是原型模式，则抛出异常
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
@@ -310,6 +313,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
+				// 处理@DependsOn注解， 当前bean有这个注解时则先创建依赖的这个Bean
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -329,6 +333,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 
 				// Create bean instance.
+				// 创建Bean实例
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
