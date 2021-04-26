@@ -249,7 +249,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
 
-		// 将name转换为标准的beanName，即：通过各个别名获取Bean真实的 beanName
+		// 将name转换为规范的beanName。
+		// 	即：	1.通过各个别名获取Bean真实的 beanName;
+		// 		2.必要时去除&符号。
+		// 			因为当配置文件中<bean>的class属性配置的实现类是FactoryBean时，通过getBean()方法返回的不是FactoryBean本身，
+		// 			而是FactoryBean#getObject()方法所返回的对象，相当于FactoryBean#getObject()代理了getBean()方法，
+		// 			如果希望获取FactoryBean的实例，需要在beanName前加上“&”符号，即getBean("&beanName")，在这里要获取的是bean的实例，所以要去掉&符号
 		String beanName = transformedBeanName(name);
 		Object beanInstance;
 
@@ -266,6 +271,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			// 从已经加载的Object中获取bean实例
 			beanInstance = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
@@ -273,7 +279,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
 			if (isPrototypeCurrentlyInCreation(beanName)) {
-				// 如果不是单例模式，是原型模式，则抛出异常
+				// 如果不是单例模式，是原型模式正在创建中，则抛出异常
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 

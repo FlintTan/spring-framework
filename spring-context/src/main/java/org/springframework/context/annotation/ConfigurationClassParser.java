@@ -156,13 +156,19 @@ class ConfigurationClassParser {
 			ProblemReporter problemReporter, Environment environment, ResourceLoader resourceLoader,
 			BeanNameGenerator componentScanBeanNameGenerator, BeanDefinitionRegistry registry) {
 
+		// 元数据读取器工厂
 		this.metadataReaderFactory = metadataReaderFactory;
+		// 问题记录器
 		this.problemReporter = problemReporter;
+		// 设置环境
 		this.environment = environment;
+		// 资源加载器
 		this.resourceLoader = resourceLoader;
 		this.registry = registry;
+		// 创建一个组件扫描解析器
 		this.componentScanParser = new ComponentScanAnnotationParser(
 				environment, resourceLoader, componentScanBeanNameGenerator, registry);
+		// 条件评估器
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, resourceLoader);
 	}
 
@@ -580,6 +586,7 @@ class ConfigurationClassParser {
 			try {
 				// importCandidates: @Import注解的Value值
 				for (SourceClass candidate : importCandidates) {
+					// 判断是否是 @ImportSelector 注解标记
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
@@ -595,12 +602,13 @@ class ConfigurationClassParser {
 							this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
 						}
 						else {
-							// 否则，调用selectImports，再递归调用processImports
+							// 否则，调用selectImports，再 递归调用processImports
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames, exclusionFilter);
 							processImports(configClass, currentSourceClass, importSourceClasses, exclusionFilter, false);
 						}
 					}
+					// 判断是否是 @ImportBeanDefinitionRegistrar 注解标记
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
 						// delegate to it to register additional bean definitions
@@ -610,6 +618,8 @@ class ConfigurationClassParser {
 										this.environment, this.resourceLoader, this.registry);
 						configClass.addImportBeanDefinitionRegistrar(registrar, currentSourceClass.getMetadata());
 					}
+					// 既不是 @ImportSelector，又不是 @ImportBeanDefinitionRegistrar 标记，
+					// 将它作为一个@Configuration 注解标记的对象处理
 					else {
 						// Candidate class not an ImportSelector or ImportBeanDefinitionRegistrar ->
 						// process it as an @Configuration class

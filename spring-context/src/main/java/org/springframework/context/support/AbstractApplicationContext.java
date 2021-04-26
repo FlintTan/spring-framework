@@ -550,7 +550,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				onRefresh();
 
 				// Check for listener beans and register them.
-				// 注册监听器
+				// 将容器中的监听器 注册到多播器中去，并发布早期事件
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
@@ -776,7 +776,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void initApplicationEventMulticaster() {
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		// 判断IOC容器中是否包含 应用事件多播器 的BeanName applicationEventMulticaster
 		if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
+			// 调用getBean方法 创建bean（applicationEventMulticaster）并放入IOC容器中
 			this.applicationEventMulticaster =
 					beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
 			if (logger.isTraceEnabled()) {
@@ -784,7 +786,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 		else {
+			// 容器中无 applicationEventMulticaster 这个beanName，则通过new 创建一个默认的 简单事件多播器
 			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+			// 然后将这个默认事件简单多播器注册到IOC容器中
 			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No '" + APPLICATION_EVENT_MULTICASTER_BEAN_NAME + "' bean, using " +
@@ -836,7 +840,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void registerListeners() {
 		// Register statically specified listeners first.
-		// 将spring现成自带的监听器添加到事件多播器中
+		// 将spring现成（系统自带）的监听器添加到事件多播器中
 		for (ApplicationListener<?> listener : getApplicationListeners()) {
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
@@ -849,8 +853,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
+		/* 前面都是在添加事件到事件多播器中，还未发布事件，👇下面是直接将早期事件进行发布  */
+
+
 		// Publish early application events now that we finally have a multicaster...
 		// 将早期事件通过多播器 统一发布事件，让监听器处理
+		// 		早期想发布的事件，由于之前还没有多播器，所以当时放进了earlyApplicationEvents，然后终于有了事件多播器，在这里一并发布这些事件
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
 		if (!CollectionUtils.isEmpty(earlyEventsToProcess)) {

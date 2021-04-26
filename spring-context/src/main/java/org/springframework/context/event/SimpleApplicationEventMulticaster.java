@@ -169,6 +169,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 			}
 		}
 		else {
+			// 调用监听器
 			doInvokeListener(listener, event);
 		}
 	}

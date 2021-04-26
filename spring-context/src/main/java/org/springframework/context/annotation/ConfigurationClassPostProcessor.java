@@ -243,7 +243,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					"postProcessBeanFactory already called on this post-processor against " + registry);
 		}
 		this.registriesPostProcessed.add(registryId);
-		// 处理配置定义信息
+		// 处理 配置Bean定义信息
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -281,7 +281,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		// 1. 过滤，找出自己的配置类
 		for (String beanName : candidateNames) {
+			// 从Bean定义Map中去获取Bean定义对象
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+			// 检查该bean定义对象是不是用来描述配置类
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
@@ -307,11 +309,12 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		});
 
 		// Detect any custom bean name generation strategy supplied through the enclosing application context
-		//
+		// 设置 bean的名称生成器
 		SingletonBeanRegistry sbr = null;
 		if (registry instanceof SingletonBeanRegistry) {
 			sbr = (SingletonBeanRegistry) registry;
 			if (!this.localBeanNameGeneratorSet) {
+				// 获取 beanName生成器：internalConfigurationBeanNameGenerator（系统自带的）
 				BeanNameGenerator generator = (BeanNameGenerator) sbr.getSingleton(
 						AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR);
 				if (generator != null) {
@@ -333,7 +336,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
-		// 下面就是解析配置类
+		/* 下面就是解析配置类 */
 
 		// 待解析的配置类
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
@@ -343,8 +346,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		// 3. 使用do-while循环去解析
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
-			// 解析配置类 	仅仅是注册包扫描的bean
+			// 解析配置类：
+			// 	这里仅仅是注册 @ComponentScan 注解 包扫描的bean，
+			// 	其他@Import、@Bean注解标注的Bean在 [this.reader.loadBeanDefinitions(configClasses);] 这一行中进行加载
 			parser.parse(candidates);
+			// 校验配置类
 			parser.validate();
 
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
@@ -357,35 +363,43 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
 			// 加载注册Bean定义信息		例如@Import、@Bean
-			// 		springboot 扫描各大自动装配组件
+			// 		springboot 扫描各大自动装配组件 在这
 			this.reader.loadBeanDefinitions(configClasses);
+			// 添加到已经解析的Set中
 			alreadyParsed.addAll(configClasses);
 			processConfig.tag("classCount", () -> String.valueOf(configClasses.size())).end();
 
+			// 将解析过的配置类清楚掉，在后面再判断还有没有待解析的，有的话再add进来
 			candidates.clear();
+
 			// 判断是否解析处理完了
+			// 已经注册的bean定义个数 大于 最新 开始系统 + 主配置类的(发生过解析)
 			if (registry.getBeanDefinitionCount() > candidateNames.length) {
 				// 还有未解析的Bean
 
-				// 总的
+				// 总的：获取系统 + 自己解析的 + mainConfig的bean定义信息
 				String[] newCandidateNames = registry.getBeanDefinitionNames();
-				// 还未解析的
+				// 还未解析的：系统的 + mainConfig的bean定义信息
 				Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
-				// 已经解析了的
+				// 已经解析了的自己的组件
 				Set<String> alreadyParsedClasses = new HashSet<>();
 				for (ConfigurationClass configurationClass : alreadyParsed) {
 					alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
 				}
 				for (String candidateName : newCandidateNames) {
+					// 老的（系统 + mainConfig） 不包含解析的
 					if (!oldCandidateNames.contains(candidateName)) {
-						// 解析还未解析的
+						// 当前的bean定义
 						BeanDefinition bd = registry.getBeanDefinition(candidateName);
+						// 判断当前bean定义是否是已经被解析过的
 						if (ConfigurationClassUtils.checkConfigurationClassCandidate(bd, this.metadataReaderFactory) &&
 								!alreadyParsedClasses.contains(bd.getBeanClassName())) {
+							// 若不是解析过且通过检查的     把当前的bean定义 加入到candidates中
 							candidates.add(new BeanDefinitionHolder(bd, candidateName));
 						}
 					}
 				}
+				// 把解析过的赋值给原来的
 				candidateNames = newCandidateNames;
 			}
 		}
