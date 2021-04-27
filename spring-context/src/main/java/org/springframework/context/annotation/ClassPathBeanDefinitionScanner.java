@@ -161,6 +161,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		this.registry = registry;
+		// 使用默认的过滤器
 		if (useDefaultFilters) {
 			// useDefaultFilters==true 扫描@Component注解以及JSR250与330规范的注解下的Bean
 			registerDefaultFilters();
@@ -281,17 +282,20 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 				candidate.setScope(scopeMetadata.getScopeName());
 				// 通过名字生成器，给这个组件取一个名称
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+				// 判断是不是抽象bean定义
 				if (candidate instanceof AbstractBeanDefinition) {
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
+				// 判断是不是注解bean定义
 				if (candidate instanceof AnnotatedBeanDefinition) {
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
 				if (checkCandidate(beanName, candidate)) {
-					// Bean定义持有器
+					// Bean定义持有器，把候选的组件封装成 BeanDefinitionHolder
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+					// 加入到bean定义的集合中
 					beanDefinitions.add(definitionHolder);
 					// 注册bean定义信息， 注册到BeanDefinitionMap中
 					registerBeanDefinition(definitionHolder, this.registry);
