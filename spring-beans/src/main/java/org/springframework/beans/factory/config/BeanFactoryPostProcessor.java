@@ -68,7 +68,8 @@ public interface BeanFactoryPostProcessor {
 	 * will have been instantiated yet. This allows for overriding or adding
 	 * properties even to eager-initializing beans.
 	 *
-	 * 所有的Bean定义信息已经加载到容器中，但是Bean实例还没有被初始化.
+	 * 作用：可添加/覆盖属性，甚至可以初始化Bean。
+	 * 执行时机：（BeanFactory标准初始化之后）所有的Bean定义信息已经加载到容器中，但是Bean还没有被实例化。
 	 *
 	 * @param beanFactory the bean factory used by the application context
 	 * @throws org.springframework.beans.BeansException in case of errors

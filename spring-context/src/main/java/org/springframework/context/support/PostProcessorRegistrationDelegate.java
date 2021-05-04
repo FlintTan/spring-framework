@@ -165,7 +165,8 @@ final class PostProcessorRegistrationDelegate {
 			}
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
-			// 4、到这里，所有的 Bean定义注册后置处理器方法 都执行完了， 就执行所有普通的普通的后置处理器 Bean工厂后置处理器方法
+			// 4、到这里，所有的 Bean定义注册后置处理器方法 都执行完了，	BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry
+			// 	就执行所有普通的普通的后置处理器 Bean工厂后置处理器方法 	BeanFactoryPostProcessor#postProcessBeanFactory
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}
@@ -176,11 +177,12 @@ final class PostProcessorRegistrationDelegate {
 		}
 
 		/* **************************************************************************************************************
-			👆上面主要是调用 invokeBeanDefinitionRegistryPostProcessors Bean定义注册后置处理器方法
-				BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry
-
-			👇下面是调用 invokeBeanFactoryPostProcessors Bean工厂后置处理器方法
-		 		BeanFactoryPostProcessor#postProcessBeanFactory
+			总结：
+				👆上面主要是调用
+						1.传入的 beanFactoryPostProcessors 与 beanFactory 中获得的 BeanDefinitionRegistryPostProcessor 中的 BDRPP#postProcessBeanDefinitionRegistry
+						2.传入的 beanFactoryPostProcessors 与 beanFactory 中获得的 BeanDefinitionRegistryPostProcessor 中的 BFPP#postProcessBeanFactory
+						3.传入的 beanFactoryPostProcessors 中 普通 BeanFactoryPostProcessor 的 BFPP#postProcessBeanFactory
+				👇下面是调用 从 beanFactory 中获得的 普通 BeanFactoryPostProcessor 的 BFPP#postProcessBeanFactory
 		 ***************************************************************************************************************/
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans

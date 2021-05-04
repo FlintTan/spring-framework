@@ -38,7 +38,8 @@ public interface BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProc
 	 * but no beans will have been instantiated yet. This allows for adding further
 	 * bean definitions before the next post-processing phase kicks in.
 	 *
-	 * 所有的bean定义信息"将要被"加载到容器中，Bean实例还没有被初始化时执行
+	 * 作用：可修改上下文环境中 bean定义注册表，添加其他的bean定义进去，用于添加一些额外的组件。
+	 * 执行时机：（BeanFactory标准初始化之后）bean定义将要被加载，还未加载的时候，先于 postProcessBeanFactory 执行。
 	 *
 	 * @param registry the bean definition registry used by the application context
 	 * @throws org.springframework.beans.BeansException in case of errors
